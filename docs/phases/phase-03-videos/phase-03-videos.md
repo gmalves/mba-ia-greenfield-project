@@ -135,7 +135,7 @@ Implementar o upload de vídeos de até 10GB sem impacto na performance — com 
 ### SI-03.5 — Upload Init (POST /videos)
 
 **Route:** POST /videos
-**Test Specs:** _pending /plan-test-specs_
+**Test Specs:** see `nestjs-project/specs/videos-upload-init.plan.md`
 **Authorization:** Authenticated
 
 **Description:** Implementar o endpoint de inicialização do upload: pré-cadastro do vídeo como rascunho (`UPLOADING`) + criação do multipart upload no object storage, retornando `{ id, upload_id }`.
@@ -166,7 +166,7 @@ Implementar o upload de vídeos de até 10GB sem impacto na performance — com 
 ### SI-03.6 — Presigned Part URLs (POST /videos/:id/upload/parts)
 
 **Route:** POST /videos/:id/upload/parts
-**Test Specs:** _pending /plan-test-specs_
+**Test Specs:** see `nestjs-project/specs/videos-upload-parts.plan.md`
 **Authorization:** Authenticated
 
 **Description:** Implementar o endpoint que emite uma presigned `PUT` URL por parte do multipart upload, permitindo ao cliente enviar bytes direto ao object storage sem relé via API.
@@ -198,7 +198,7 @@ Implementar o upload de vídeos de até 10GB sem impacto na performance — com 
 ### SI-03.7 — Upload Complete and Abort
 
 **Route:** POST /videos/:id/upload/complete, POST /videos/:id/upload/abort
-**Test Specs:** _pending /plan-test-specs_
+**Test Specs:** see `nestjs-project/specs/videos-upload-complete-abort.plan.md`
 **Authorization:** Authenticated
 
 **Description:** Implementar os endpoints de conclusão e aborto do multipart upload: `complete` finaliza o upload no S3, transiciona o vídeo para `PROCESSING` e enfileira o job; `abort` descarta o upload e marca o vídeo como `FAILED`.
@@ -232,7 +232,7 @@ Implementar o upload de vídeos de até 10GB sem impacto na performance — com 
 ### SI-03.8 — Video Status (GET /videos/:id)
 
 **Route:** GET /videos/:id
-**Test Specs:** _pending /plan-test-specs_
+**Test Specs:** see `nestjs-project/specs/videos-status.plan.md`
 **Authorization:** Authenticated
 
 **Description:** Implementar o endpoint de status do vídeo, expondo estado, título, duração e URL do thumbnail para o FE consumir a evolução `UPLOADING` → `PROCESSING` → `READY`/`FAILED`.
@@ -262,7 +262,7 @@ Implementar o upload de vídeos de até 10GB sem impacto na performance — com 
 ### SI-03.9 — Streaming and Download URLs (GET /videos/:id/stream, /videos/:id/download)
 
 **Route:** GET /videos/:id/stream, GET /videos/:id/download
-**Test Specs:** _pending /plan-test-specs_
+**Test Specs:** see `nestjs-project/specs/videos-stream-download.plan.md`
 **Authorization:** Anonymous
 
 **Description:** Implementar a emissão de presigned `GET` URLs para reprodução via streaming (`HTTP Range`, sem download completo) e para download (`Content-Disposition: attachment`), direcionando o navegador direto ao object storage.
