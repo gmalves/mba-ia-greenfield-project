@@ -34,6 +34,10 @@ docker compose exec nestjs-api npm run start:dev
 Services:
 - `nestjs-api` — NestJS API, port `3000`
 - `db` — PostgreSQL 17, port `5432`, database `streamtube`, user/password `streamtube`
+- `mailpit` — SMTP `1025` + web UI/API `8025`
+- `minio` — S3-compatible object storage, `9000` (API) — bucket created by `minio-init`
+- `redis` — queue backend for BullMQ, `6379`
+- `worker` — video processing worker (`npm run start:worker`, FFmpeg)
 
 All verification and teardown commands run on the **host machine**:
 
@@ -119,7 +123,7 @@ Conventions for **how to write** each kind of test (mocking patterns, AAA struct
 
 These settings are required in `package.json` (jest config) and `test/jest-e2e.json` for the project's tests to work correctly:
 
-- `setupFiles: ["dotenv/config"]` — without this, `.env` is not loaded inside the Jest process. `DB_HOST`, `JWT_SECRET`, etc. fall back to undefined or to the host's `localhost`, breaking container-to-container DNS.
+- `setupFiles: ["<rootDir>/setup-env.ts", "dotenv/config"]` — `setup-env.ts` pins the internal storage endpoint for tests running inside the Compose network; `dotenv/config` then loads `.env` (without overriding the pin).
 - `testRegex: '.*\\.(spec|integration-spec)\\.ts$'` — covers both unit (`*.spec.ts`) and integration (`*.integration-spec.ts`) suffixes.
 
 Do not add new test-file suffixes; if a new test type is needed, update the regex deliberately.
@@ -148,6 +152,14 @@ NestJS with standard module structure. Source lives in `src/`, compiled output i
 
 - Each domain feature gets its own module (e.g., `UsersModule`, `VideosModule`) registered in `AppModule`
 - Controllers handle HTTP routing; Services hold business logic; both are scoped to their module
+
+## Videos Domain (Phase 03)
+
+- **Module:** `src/videos/` — endpoints, strict state machine (`PENDING → UPLOADING → PROCESSING → READY`/`FAILED`), entity + migration `CreateVideos`.
+- **Endpoints:** `POST /videos` (init multipart upload), `POST /videos/:id/upload/parts` (presigned part URLs), `POST /videos/:id/upload/complete`, `POST /videos/:id/upload/abort`, `GET /videos/:id` (status), `GET /videos/:id/stream`, `GET /videos/:id/download`.
+- **Storage:** `src/storage/` — S3 client (MinIO/AWS SDK v3). URLs handed to external clients (upload parts, stream, download, thumbnail) are signed with `STORAGE_PUBLIC_ENDPOINT`; server-to-server calls use `STORAGE_ENDPOINT`. Tests pin the internal endpoint via `setup-env.ts`.
+- **Queue/Worker:** `src/queues/` (BullMQ, queue `video-processing`); `src/worker.ts` boots `AppModule + VideoProcessingModule` — the HTTP process never registers the consumer.
+- **Uploads:** direct-to-storage via presigned multipart parts (no server proxying), designed for large files (up to 10GB).
 
 ## Code Conventions
 
